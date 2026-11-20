@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>먹빛 아틀리에 | AI 한국어 캘리그라피 스튜디오</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Serif KR & Pretendard CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Pretendard"', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+                        serif: ['"Noto Serif KR"', 'serif'],
+                    },
+                    colors: {
+                        hanji: {
+                            50: '#FDFCFA',
+                            100: '#F7F4EB',
+                            200: '#EFE9DC',
+                            300: '#E2D8C4',
+                            800: '#3B362E',
+                            900: '#24201A',
+                        },
+                        ink: {
+                            DEFAULT: '#000000',
+                            charcoal: '#1E1E1E',
+                            navy: '#1B263B',
+                            crimson: '#5C2018',
+                            accent: '#9E3E33',
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        /* 한지 감성 미세 도트 배경 */
+        body {
+            background-color: #F7F4EB;
+            background-image: radial-gradient(#DFD5C0 0.65px, transparent 0.65px);
+            background-size: 20px 20px;
+            color: #24201A;
+        }
+
+        /* 먹물 번짐 로딩 애니메이션 */
+        @keyframes inkSpread {
+            0% {
+                transform: scale(0.75);
+                opacity: 0.85;
+                border-radius: 46% 54% 52% 48% / 48% 45% 55% 52%;
+            }
+            50% {
+                transform: scale(1.15);
+                opacity: 0.35;
+                border-radius: 54% 46% 45% 55% / 53% 56% 44% 47%;
+            }
+            100% {
+                transform: scale(0.75);
+                opacity: 0.85;
+                border-radius: 46% 54% 52% 48% / 48% 45% 55% 52%;
+            }
+        }
+
+        .ink-loader {
+            animation: inkSpread 2.5s ease-in-out infinite;
+        }
+
+        /* 투명 배경 확인용 체커보드 패턴 */
+        .checkerboard-bg {
+            background-color: #ffffff;
+            background-image:
+                linear-gradient(45deg, #ececec 25%, transparent 25%),
+                linear-gradient(-45deg, #ececec 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #ececec 75%),
+                linear-gradient(-45deg, transparent 75%, #ececec 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+        }
+
+        /* 스크롤바 스타일 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F7F4EB;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D6CCB8;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-ink-accent selection:text-white">
+
+    <!-- 상단 헤더 -->
+    <header class="w-full bg-hanji-50/90 backdrop-blur-md border-b border-hanji-200 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-ink-accent text-hanji-50 flex items-center justify-center font-serif font-bold text-lg shadow-sm select-none">
+                    墨
+                </div>
+                <div>
+                    <h1 class="font-serif font-bold text-lg sm:text-xl tracking-tight text-hanji-900">먹빛 아틀리에</h1>
+                    <p class="text-[11px] text-hanji-800/70 hidden sm:block">AI 한국어 손글씨 캘리그라피 스튜디오</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-hanji-800/80 bg-hanji-100 px-3 py-1.5 rounded-full border border-hanji-200">
+                <span class="w-2 h-2 rounded-full bg-emerald-600 inline-block animate-pulse"></span>
+                <span>손글씨 특화 렌더링 준비됨</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 알림 토스트 컨테이너 -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- 메인 2단 반응형 레이아웃 -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+
+            <!-- 좌측 컨트롤 패널 (5컬럼) -->
+            <section class="lg:col-span-5 bg-hanji-50 rounded-2xl border border-hanji-200 shadow-sm p-5 sm:p-6 space-y-6">
+
+                <!-- 1. 캘리그라피 문구 입력 -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="calligraphy-text" class="text-sm font-bold text-hanji-900 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-hanji-900 text-hanji-50 text-xs flex items-center justify-center font-serif">1</span>
+                            <span>문구 입력</span>
+                        </label>
+                        <span id="char-count" class="text-xs text-hanji-800/60">21자 / 권장 30자 이내</span>
+                    </div>
+                    <textarea
+                        id="calligraphy-text"
+                        rows="3"
+                        maxlength="60"
+                        placeholder="예: 너는 네가 길들인 것에&#10;대해 책임이 있어"
+                        class="w-full rounded-xl border border-hanji-300 bg-white px-4 py-3 text-base text-hanji-900 placeholder:text-hanji-800/40 focus:border-hanji-900 focus:outline-none focus:ring-2 focus:ring-hanji-900/10 transition resize-none leading-relaxed"
+                    >너는 네가 길들인 것에
+대해 책임이 있어</textarea>
+
+                    <!-- 원클릭 예시 문구 칩 -->
+                    <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
+                        <span class="text-[11px] font-medium text-hanji-800/60 mr-0.5">예시 문구:</span>
+                        <button type="button" data-sample="너는 네가 길들인 것에&#10;대해 책임이 있어" data-emphasis="길들인, 책임" class="sample-chip text-[11px] px-2.5 py-1 rounded-full bg-hanji-100 hover:bg-hanji-200 text-hanji-900 border border-hanji-200 transition cursor-pointer">
+                            어린 왕자 명대사
+                        </button>
+                        <button type="button" data-sample="사랑하고&#10;축복합니다" data-emphasis="사랑, 축복" class="sample-chip text-[11px] px-2.5 py-1 rounded-full bg-hanji-100 hover:bg-hanji-200 text-hanji-900 border border-hanji-200 transition cursor-pointer">
+                            사랑하고 축복합니다
+                        </button>
+                        <button type="button" data-sample="오늘도&#10;수고했어" data-emphasis="수고했어" class="sample-chip text-[11px] px-2.5 py-1 rounded-full bg-hanji-100 hover:bg-hanji-200 text-hanji-900 border border-hanji-200 transition cursor-pointer">
+                            오늘도 수고했어
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. 특정 강조 글자(단어) 지정 기능 -->
+                <div class="bg-hanji-100/70 rounded-xl p-3.5 border border-hanji-200 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <label for="emphasis-input" class="text-xs font-bold text-hanji-900 flex items-center gap-1.5">
+                            <span class="w-4 h-4 rounded-full bg-ink-accent text-white text-[10px] flex items-center justify-center font-bold">★</span>
+                            <span>강조할 글자(단어) 지정</span>
+                        </label>
+                        <button type="button" id="clear-emphasis-btn" class="text-[11px] text-hanji-800/60 hover:text-ink-accent underline cursor-pointer">
+                            전체 해제
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-hanji-800/75 leading-relaxed">
+                        클릭하거나 직접 입력한 단어는 <strong>1.7~2.2배 크고 도톰하게</strong> 강조되고, 주변 조사·어미는 작고 가볍게 어우러집니다.
+                    </p>
+                    <!-- 문구에서 자동 추출된 클릭 가능한 강조 단어 칩 목록 -->
+                    <div id="emphasis-word-chips" class="flex flex-wrap gap-1.5 min-h-[26px]"></div>
+                    <!-- 직접 입력 / 복수 단어 표시 필드 -->
+                    <div class="relative">
+                        <input
+                            type="text"
+                            id="emphasis-input"
+                            value="길들인, 책임"
+                            placeholder="강조할 단어를 쉼표(,)로 구분해 입력 (예: 사랑, 축복)"
+                            class="w-full rounded-lg border border-hanji-300 bg-white px-3 py-2 text-xs text-hanji-900 placeholder:text-hanji-800/40 focus:border-hanji-900 focus:outline-none"
+                        />
+                    </div>
+                </div>
+
+                <!-- 3. 4종 손글씨 스타일 프리셋 (2x2 그리드) -->
+                <div>
+                    <label class="text-sm font-bold text-hanji-900 flex items-center gap-2 mb-2.5">
+                        <span class="w-5 h-5 rounded-full bg-hanji-900 text-hanji-50 text-xs flex items-center justify-center font-serif">2</span>
+                        <span>손글씨 스타일 선택 (4종)</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="style-presets">
+                        <!-- 스타일 1 -->
+                        <button type="button" data-style="brushpen" class="style-card relative text-left p-3.5 rounded-xl border-2 border-hanji-900 bg-hanji-100/80 transition-all hover:bg-hanji-100 focus:outline-none cursor-pointer">
+                            <span class="check-badge pointer-events-none absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-hanji-900 text-white text-[10px] flex items-center justify-center font-bold">✓</span>
+                            <div class="pointer-events-none pr-5">
+                                <span class="font-bold text-xs sm:text-sm text-hanji-900 block">거친 붓펜 & 갈필 감성</span>
+                                <span class="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-ink-accent text-white">추천 · 생동감</span>
+                                <p class="text-[11px] text-hanji-800/80 mt-1.5 leading-snug">
+                                    붓 끝 갈라짐과 역동적인 필압, 비정형적 자모음 크기 변화가 살아있는 손글씨
+                                </p>
+                            </div>
+                        </button>
+
+                        <!-- 스타일 2 -->
+                        <button type="button" data-style="rounded" class="style-card relative text-left p-3.5 rounded-xl border border-hanji-200 bg-white transition-all hover:border-hanji-300 hover:bg-hanji-100/40 focus:outline-none cursor-pointer">
+                            <span class="check-badge pointer-events-none hidden absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-hanji-900 text-white text-[10px] flex items-center justify-center font-bold">✓</span>
+                            <div class="pointer-events-none pr-5">
+                                <span class="font-bold text-xs sm:text-sm text-hanji-900 block">다정한 둥근 손글씨</span>
+                                <span class="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">몽글 · 따뜻함</span>
+                                <p class="text-[11px] text-hanji-800/80 mt-1.5 leading-snug">
+                                    거친 갈필 없이 도톰하고 몽글몽글한 둥근 획 끝처리와 따뜻한 덩어리 구도
+                                </p>
+                            </div>
+                        </button>
+
+                        <!-- 스타일 3 -->
+                        <button type="button" data-style="dippen" class="style-card relative text-left p-3.5 rounded-xl border border-hanji-200 bg-white transition-all hover:border-hanji-300 hover:bg-hanji-100/40 focus:outline-none cursor-pointer">
+                            <span class="check-badge pointer-events-none hidden absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-hanji-900 text-white text-[10px] flex items-center justify-center font-bold">✓</span>
+                            <div class="pointer-events-none pr-5">
+                                <span class="font-bold text-xs sm:text-sm text-hanji-900 block">부드러운 딥펜 손글씨</span>
+                                <span class="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-hanji-200 text-hanji-800">유려 · 섬세함</span>
+                                <p class="text-[11px] text-hanji-800/80 mt-1.5 leading-snug">
+                                    만년필·딥펜 특유의 섬세한 굵기 변화와 유려하게 이어지는 서정적 곡선
+                                </p>
+                            </div>
+                        </button>
+
+                        <!-- 스타일 4 -->
+                        <button type="button" data-style="calligraphy" class="style-card relative text-left p-3.5 rounded-xl border border-hanji-200 bg-white transition-all hover:border-hanji-300 hover:bg-hanji-100/40 focus:outline-none cursor-pointer">
+                            <span class="check-badge pointer-events-none hidden absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-hanji-900 text-white text-[10px] flex items-center justify-center font-bold">✓</span>
+                            <div class="pointer-events-none pr-5">
+                                <span class="font-bold text-xs sm:text-sm text-hanji-900 block">힘 있는 전통 먹물 서예</span>
+                                <span class="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-hanji-200 text-hanji-800">묵직 · 예술성</span>
+                                <p class="text-[11px] text-hanji-800/80 mt-1.5 leading-snug">
+                                    묵직하고 깊이 있는 한국적 서예 필치와 대담한 먹 농담의 조화
+                                </p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. 배경 색상 및 잉크 색상 선택 -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label class="text-sm font-bold text-hanji-900 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-hanji-900 text-hanji-50 text-xs flex items-center justify-center font-serif">3</span>
+                            <span>배경 및 먹물 색상</span>
+                        </label>
+                        <span id="selected-color-summary" class="text-[11px] font-medium text-hanji-800/75">순수 흰색 · 순수 검정</span>
+                    </div>
+
+                    <!-- 배경 색상 (2종) -->
+                    <div>
+                        <span class="text-xs font-semibold text-hanji-800 block mb-1.5">배경 색상</span>
+                        <div class="grid grid-cols-2 gap-2.5" id="bg-options">
+                            <button type="button" data-bg="white" data-label="순수 흰색" class="bg-btn relative flex items-center gap-2.5 p-3 rounded-xl border-2 border-hanji-900 bg-white text-left transition cursor-pointer">
+                                <span class="check-badge pointer-events-none absolute top-2 right-2 w-4 h-4 rounded-full bg-hanji-900 text-white text-[10px] flex items-center justify-center font-bold">✓</span>
+                                <span class="pointer-events-none w-6 h-6 rounded-full bg-[#FFFFFF] border border-gray-300 shrink-0 shadow-inner"></span>
+                                <div class="pointer-events-none">
+                                    <span class="text-xs font-bold text-hanji-900 block">순수 흰색</span>
+                                    <span class="text-[10px] text-gray-500 block">#FFFFFF · 누끼용</span>
+                                </div>
+                            </button>
+
+                            <button type="button" data-bg="hanji" data-label="따뜻한 미색 한지" class="bg-btn relative flex items-center gap-2.5 p-3 rounded-xl border border-hanji-200 bg-white text-left transition hover:border-hanji-300 cursor-pointer">
+                                <span class="check-badge pointer-events-none hidden absolute top-2 right-2 w-4 h-4 rounded-full bg-hanji-900 text-white text-[10px] flex items-center justify-center font-bold">✓</span>
+                                <span class="pointer-events-none w-6 h-6 rounded-full bg-[#F7F4EB] border border-[#DFD5C0] shrink-0"></span>
+                                <div class="pointer-events-none">
+                                    <span class="text-xs font-bold text-hanji-900 block">따뜻한 미색 한지</span>
+                                    <span class="text-[10px] text-gray-500 block">#F7F4EB · 종이 질감</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 잉크 색상 (4종) -->
+                    <div>
+                        <span class="text-xs font-semibold text-hanji-800 block mb-1.5">먹물 / 잉크 색상</span>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="ink-options">
+                            <button type="button" data-ink="black" data-label="순수 검정" class="ink-btn relative flex flex-col items-center justify-center p-2.5 rounded-xl border-2 border-hanji-900 bg-white text-center transition cursor-pointer">
+                                <span class="check-badge pointer-events-none absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full bg-hanji-900 text-white text-[9px] flex items-center justify-center font-bold">✓</span>
+                                <span class="pointer-events-none w-6 h-6 rounded-full bg-[#000000] mb-1.5 shadow-xs"></span>
+                                <span class="pointer-events-none text-[11px] font-bold text-hanji-900">순수 검정</span>
+                                <span class="pointer-events-none text-[9px] text-gray-500">#000000</span>
+                            </button>
+
+                            <button type="button" data-ink="charcoal" data-label="짙은 차콜" class="ink-btn relative flex flex-col items-center justify-center p-2.5 rounded-xl border border-hanji-200 bg-white text-center transition hover:border-hanji-300 cursor-pointer">
+                                <span class="check-badge pointer-events-none hidden absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full bg-hanji-900 text-white text-[9px] flex items-center justify-center font-bold">✓</span>
+                                <span class="pointer-events-none w-6 h-6 rounded-full bg-[#1E1E1E] mb-1.5 shadow-xs"></span>
+                                <span class="pointer-events-none text-[11px] font-bold text-hanji-900">짙은 차콜</span>
+                                <span class="pointer-events-none text-[9px] text-gray-500">#1E1E1E</span>
+                            </button>
+
+                            <button type="button" data-ink="navy" data-label="먹빛 남색" class="ink-btn relative flex flex-col items-center justify-center p-2.5 rounded-xl border border-hanji-200 bg-white text-center transition hover:border-hanji-300 cursor-pointer">
+                                <span class="check-badge pointer-events-none hidden absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full bg-hanji-900 text-white text-[9px] flex items-center justify-center font-bold">✓</span>
+                                <span class="pointer-events-none w-6 h-6 rounded-full bg-[#1B263B] mb-1.5 shadow-xs"></span>
+                                <span class="pointer-events-none text-[11px] font-bold text-hanji-900">먹빛 남색</span>
+                                <span class="pointer-events-none text-[9px] text-gray-500">#1B263B</span>
+                            </button>
+
+                            <button type="button" data-ink="crimson" data-label="고풍 적갈색" class="ink-btn relative flex flex-col items-center justify-center p-2.5 rounded-xl border border-hanji-200 bg-white text-center transition hover:border-hanji-300 cursor-pointer">
+                                <span class="check-badge pointer-events-none hidden absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full bg-hanji-900 text-white text-[9px] flex items-center justify-center font-bold">✓</span>
+                                <span class="pointer-events-none w-6 h-6 rounded-full bg-[#5C2018] mb-1.5 shadow-xs"></span>
+                                <span class="pointer-events-none text-[11px] font-bold text-hanji-900">고풍 적갈색</span>
+                                <span class="pointer-events-none text-[9px] text-gray-500">#5C2018</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 작품 생성 실행 버튼 -->
+                <div class="pt-1">
+                    <button
+                        id="generate-btn"
+                        type="button"
+                        class="w-full py-3.5 px-6 rounded-xl bg-hanji-900 hover:bg-black active:scale-[0.99] text-hanji-50 font-bold text-base shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                        </svg>
+                        <span class="pointer-events-none">캘리그라피 작품 생성하기</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 우측 실시간 캔버스 미리보기 및 보관함 영역 (7컬럼) -->
+            <section class="lg:col-span-7 flex flex-col gap-5">
+                <div class="bg-hanji-50 rounded-2xl border border-hanji-200 shadow-sm p-4 sm:p-6 flex flex-col">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div class="flex items-center gap-2">
+                            <h2 class="font-serif font-bold text-base text-hanji-900">화선지 캔버스 미리보기</h2>
+                            <span id="status-badge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-hanji-200 text-hanji-800 font-medium">대기 중</span>
+                        </div>
+
+                        <!-- 실시간 누끼(투명 배경) 전환 토글 -->
+                        <div id="preview-mode-toggle" class="hidden items-center gap-1.5 text-xs">
+                            <button type="button" id="toggle-checker-btn" class="px-3 py-1.5 rounded-lg border border-hanji-300 bg-white hover:bg-hanji-100 text-hanji-900 font-medium transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                                <svg class="w-3.5 h-3.5 pointer-events-none text-ink-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                                </svg>
+                                <span id="toggle-checker-label" class="pointer-events-none">투명 배경(누끼) 미리보기</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 메인 16:9 캔버스 프레임 -->
+                    <div id="canvas-frame" class="relative w-full aspect-video rounded-xl border border-hanji-200 bg-white overflow-hidden flex items-center justify-center shadow-inner">
+                        <!-- 초기 안내 상태 -->
+                        <div id="empty-state" class="text-center px-6 py-10 max-w-md">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-hanji-100 border border-hanji-200 flex items-center justify-center text-hanji-800/60">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-serif font-bold text-lg text-hanji-900 mb-1.5">당신의 문장에 손글씨의 숨결을 불어넣으세요</h3>
+                            <p class="text-xs sm:text-sm text-hanji-800/70 leading-relaxed">
+                                강조할 단어와 손글씨 스타일, 먹물 색상을 선택한 뒤 <strong>'캘리그라피 작품 생성하기'</strong>를 누르면 기계적인 폰트 느낌이 없는 예술적인 작품이 완성됩니다.
+                            </p>
+                        </div>
+
+                        <!-- 먹물 로딩 오버레이 -->
+                        <div id="loading-state" class="hidden absolute inset-0 bg-hanji-50/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-6 text-center">
+                            <div class="relative w-20 h-20 flex items-center justify-center mb-4">
+                                <div class="ink-loader absolute inset-0 bg-hanji-900/90"></div>
+                                <span class="relative font-serif text-hanji-50 text-xl font-bold tracking-widest">筆</span>
+                            </div>
+                            <p class="font-serif font-bold text-base text-hanji-900 mb-1">먹을 갈아 한 획씩 정성껏 쓰는 중입니다...</p>
+                            <p class="text-xs text-hanji-800/70">강조 단어의 조형미와 손글씨의 자연스러운 필압을 렌더링하고 있습니다</p>
+                        </div>
+
+                        <!-- 생성 결과 이미지 -->
+                        <img id="result-image" src="" alt="생성된 한국어 캘리그라피 아트워크" class="hidden w-full h-full object-contain transition-opacity duration-300" />
+                    </div>
+
+                    <!-- 하단 다운로드 액션 바 -->
+                    <div id="action-bar" class="hidden mt-4 pt-4 border-t border-hanji-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        <div class="text-xs text-hanji-800/75 leading-relaxed">
+                            <span class="font-bold text-hanji-900">💡 누끼 팁:</span> 순수 흰색 배경 선택 시 유채색 잉크(남색·적갈색 포함) 색감을 그대로 보존한 투명 PNG를 바로 저장할 수 있습니다.
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                            <button
+                                id="download-normal-btn"
+                                type="button"
+                                class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-hanji-300 bg-white hover:bg-hanji-100 text-hanji-900 text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                                <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                                <span class="pointer-events-none">원본 PNG 저장</span>
+                            </button>
+
+                            <button
+                                id="download-transparent-btn"
+                                type="button"
+                                class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-ink-accent hover:bg-[#873329] text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                                <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                                <span class="pointer-events-none">투명 배경 PNG 저장</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 오프스크린 누끼 변환용 캔버스 -->
+                <canvas id="process-canvas" class="hidden"></canvas>
+
+                <!-- 최근 생성한 캘리그라피 작품 보관함 (히스토리 갤러리) -->
+                <div id="history-section" class="hidden bg-hanji-50 rounded-2xl border border-hanji-200 shadow-sm p-4 sm:p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-serif font-bold text-sm text-hanji-900 flex items-center gap-2">
+                            <span>최근 생성한 작품 보관함</span>
+                            <span id="history-count" class="text-[11px] font-sans font-bold px-2 py-0.5 rounded-full bg-hanji-200 text-hanji-800">0</span>
+                        </h3>
+                        <span class="text-[11px] text-hanji-800/60">카드를 클릭하면 캔버스로 다시 불러옵니다</span>
+                    </div>
+                    <div id="history-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- 하단 푸터 -->
+    <footer class="w-full py-5 border-t border-hanji-200/80 text-center text-xs text-hanji-800/60">
+        <p>먹빛 아틀리에 (Mukbit Atelier) · AI 한국어 손글씨 캘리그라피 스튜디오</p>
+    </footer>
+
+    <script>
+        // --- 전역 애플리케이션 상태 ---
+        const state = {
+            style: 'brushpen',     // 'brushpen' | 'rounded' | 'dippen' | 'calligraphy'
+            bg: 'white',           // 'white' | 'hanji'
+            bgLabel: '순수 흰색',
+            ink: 'black',          // 'black' | 'charcoal' | 'navy' | 'crimson'
+            inkLabel: '순수 검정',
+            originalDataUrl: null,
+            transparentDataUrl: null,
+            isCheckerPreview: false,
+            isGenerating: false,
+            history: []
+        };
+
+        // --- DOM 요소 참조 ---
+        const textInput = document.getElementById('calligraphy-text');
+        const charCount = document.getElementById('char-count');
+        const sampleChips = document.querySelectorAll('.sample-chip');
+        const emphasisWordChips = document.getElementById('emphasis-word-chips');
+        const emphasisInput = document.getElementById('emphasis-input');
+        const clearEmphasisBtn = document.getElementById('clear-emphasis-btn');
+        const styleCards = document.querySelectorAll('.style-card');
+        const bgButtons = document.querySelectorAll('.bg-btn');
+        const inkButtons = document.querySelectorAll('.ink-btn');
+        const selectedColorSummary = document.getElementById('selected-color-summary');
+        const generateBtn = document.getElementById('generate-btn');
+        const emptyState = document.getElementById('empty-state');
+        const loadingState = document.getElementById('loading-state');
+        const resultImage = document.getElementById('result-image');
+        const actionBar = document.getElementById('action-bar');
+        const statusBadge = document.getElementById('status-badge');
+        const canvasFrame = document.getElementById('canvas-frame');
+        const previewModeToggle = document.getElementById('preview-mode-toggle');
+        const toggleCheckerBtn = document.getElementById('toggle-checker-btn');
+        const toggleCheckerLabel = document.getElementById('toggle-checker-label');
+        const downloadNormalBtn = document.getElementById('download-normal-btn');
+        const downloadTransparentBtn = document.getElementById('download-transparent-btn');
+        const processCanvas = document.getElementById('process-canvas');
+        const historySection = document.getElementById('history-section');
+        const historyGrid = document.getElementById('history-grid');
+        const historyCount = document.getElementById('history-count');
+
+        // --- 토스트 알림 표시 함수 ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const colors = {
+                info: 'bg-hanji-900 text-hanji-50 border-hanji-800',
+                success: 'bg-emerald-900 text-white border-emerald-700',
+                error: 'bg-red-900 text-white border-red-700'
+            };
+
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-lg text-xs sm:text-sm font-medium flex items-center gap-2 transition-all duration-300 translate-y-2 opacity-0 ${colors[type] || colors.info}`;
+            toast.textContent = message;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3400);
+        }
+
+        // --- 현재 강조 단어 배열 파싱 ---
+        function getEmphasisWords() {
+            return emphasisInput.value
+                .split(',')
+                .map(w => w.trim())
+                .filter(w => w.length > 0);
+        }
+
+        // --- 문구 속 단어 자동 추출 및 강조 단어 칩 렌더링 ---
+        function renderEmphasisChips() {
+            const raw = textInput.value.trim();
+            const tokens = raw
+                .split(/[\s\n]+/)
+                .map(t => t.replace(/[.,!?'"~()]/g, '').trim())
+                .filter(t => t.length > 0);
+
+            // 중복 제거
+            const uniqueTokens = [...new Set(tokens)];
+            const activeEmphasis = getEmphasisWords();
+
+            emphasisWordChips.innerHTML = '';
+
+            if (uniqueTokens.length === 0) {
+                emphasisWordChips.innerHTML = '<span class="text-[11px] text-hanji-800/50">문구를 입력하면 단어 칩이 표시됩니다</span>';
+                return;
+            }
+
+            uniqueTokens.forEach(token => {
+                const isSelected = activeEmphasis.includes(token);
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.textContent = isSelected ? `★ ${token}` : token;
+                chip.className = isSelected
+                    ? 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-ink-accent text-white border border-ink-accent shadow-2xs transition cursor-pointer'
+                    : 'text-[11px] font-medium px-2.5 py-1 rounded-full bg-white hover:bg-hanji-200 text-hanji-800 border border-hanji-300 transition cursor-pointer';
+
+                chip.addEventListener('click', () => {
+                    const current = getEmphasisWords();
+                    const idx = current.indexOf(token);
+                    if (idx > -1) {
+                        current.splice(idx, 1);
+                    } else {
+                        current.push(token);
+                    }
+                    emphasisInput.value = current.join(', ');
+                    renderEmphasisChips();
+                });
+
+                emphasisWordChips.appendChild(chip);
+            });
+        }
+
+        // --- 글자 수 카운터 및 단어 칩 동기화 ---
+        function handleTextChange() {
+            const len = textInput.value.replace(/\n/g, '').length;
+            charCount.textContent = `${len}자 / 권장 30자 이내`;
+            if (len > 35) {
+                charCount.classList.add('text-ink-accent', 'font-semibold');
+            } else {
+                charCount.classList.remove('text-ink-accent', 'font-semibold');
+            }
+            renderEmphasisChips();
+        }
+
+        textInput.addEventListener('input', handleTextChange);
+        emphasisInput.addEventListener('input', renderEmphasisChips);
+
+        clearEmphasisBtn.addEventListener('click', () => {
+            emphasisInput.value = '';
+            renderEmphasisChips();
+        });
+
+        // 초기 단어 칩 렌더링 실행
+        handleTextChange();
+
+        // --- 원클릭 예시 문구 칩 ---
+        sampleChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                textInput.value = chip.dataset.sample;
+                emphasisInput.value = chip.dataset.emphasis || '';
+                handleTextChange();
+                textInput.focus();
+            });
+        });
+
+        // --- 스타일 프리셋 4종 선택 이벤트 ---
+        styleCards.forEach(card => {
+            card.addEventListener('click', () => {
+                state.style = card.dataset.style;
+                styleCards.forEach(c => {
+                    c.classList.remove('border-2', 'border-hanji-900', 'bg-hanji-100/80');
+                    c.classList.add('border', 'border-hanji-200', 'bg-white');
+                    const badge = c.querySelector('.check-badge');
+                    if (badge) badge.classList.add('hidden');
+                });
+                card.classList.remove('border', 'border-hanji-200', 'bg-white');
+                card.classList.add('border-2', 'border-hanji-900', 'bg-hanji-100/80');
+                const activeBadge = card.querySelector('.check-badge');
+                if (activeBadge) activeBadge.classList.remove('hidden');
+            });
+        });
+
+        // --- 색상 선택 요약 문구 갱신 ---
+        function updateColorSummary() {
+            if (selectedColorSummary) {
+                selectedColorSummary.textContent = `${state.bgLabel} · ${state.inkLabel}`;
+            }
+        }
+
+        // --- 배경 색상 선택 이벤트 ---
+        bgButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.bg = btn.dataset.bg;
+                state.bgLabel = btn.dataset.label;
+                bgButtons.forEach(b => {
+                    b.classList.remove('border-2', 'border-hanji-900');
+                    b.classList.add('border', 'border-hanji-200');
+                    const badge = b.querySelector('.check-badge');
+                    if (badge) badge.classList.add('hidden');
+                });
+                btn.classList.remove('border', 'border-hanji-200');
+                btn.classList.add('border-2', 'border-hanji-900');
+                const activeBadge = btn.querySelector('.check-badge');
+                if (activeBadge) activeBadge.classList.remove('hidden');
+                updateColorSummary();
+            });
+        });
+
+        // --- 잉크 색상 선택 이벤트 ---
+        inkButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.ink = btn.dataset.ink;
+                state.inkLabel = btn.dataset.label;
+                inkButtons.forEach(b => {
+                    b.classList.remove('border-2', 'border-hanji-900');
+                    b.classList.add('border', 'border-hanji-200');
+                    const badge = b.querySelector('.check-badge');
+                    if (badge) badge.classList.add('hidden');
+                });
+                btn.classList.remove('border', 'border-hanji-200');
+                btn.classList.add('border-2', 'border-hanji-900');
+                const activeBadge = btn.querySelector('.check-badge');
+                if (activeBadge) activeBadge.classList.remove('hidden');
+                updateColorSummary();
+            });
+        });
+
+        // --- 고도화된 한국어 캘리그라피 프롬프트 빌더 ---
+        function buildCalligraphyPrompt(rawText, styleKey, bgKey, inkKey, emphasisList) {
+            const lines = rawText
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+
+            const lineCount = lines.length;
+            const formattedLines = lines.map((line, idx) => `${idx + 1}번째 줄: "${line}"`).join('\n');
+
+            // 강조 단어 크기 대비 지시어 생성
+            let emphasisInstruction = '';
+            if (emphasisList && emphasisList.length > 0) {
+                const quoted = emphasisList.map(w => `"${w}"`).join(', ');
+                emphasisInstruction = `
+[핵심 강조 단어 크기 대비 및 조형 설계 - 매우 중요]
+- 사용자가 특별히 강조하기를 원하는 핵심 단어는 ${quoted} 이다.
+- 위 강조 단어(${quoted})는 문장 내 다른 일반 글자나 조사·어미보다 **약 1.7배에서 2.2배 정도 훨씬 크고 도톰하며 역동적인 포인트 획**으로 과감하게 키워서 중심을 잡아라.
+- 반대로 강조 단어가 아닌 나머지 주변 글자, 조사, 연결 어미는 상대적으로 작고 가벼운 획으로 줄여 강조 단어의 옆이나 아래에 아기자기하고 조화롭게 배치함으로써, 전문 캘리그라피 작가 특유의 극적인 크기 강약 대비와 리듬감을 극대화하라.`;
+            } else {
+                emphasisInstruction = `
+[자연스러운 강약 및 크기 리듬]
+- 문장 내 핵심 의미가 담긴 어간은 조금 더 크고 힘 있게 쓰고, 조사나 연결 어미는 작고 가볍게 배치하여 손글씨 특유의 자연스러운 강약 대비를 살려라.`;
+            }
+
+            // 4종 스타일별 세부 질감 지시어
+            const styleDescriptions = {
+                brushpen: `
+- 스타일: 거친 붓펜 & 갈필 감성 (Korean expressive brush-pen calligraphy with dry-brush texture).
+- 필치 및 질감: 사람이 직접 붓펜으로 꾹꾹 눌러 쓴 생동감 넘치는 손글씨. 획의 시작과 끝에는 붓털이 갈라지며 스치는 자연스러운 갈필(거친 보푸라기, 흐려짐)과 속도감이 풍부하게 살아있다.
+- 형태 특징: 자모음의 굵기 변화가 뚜렷하고 받침이나 세로획이 자연스럽게 삐쳐 나오는 인간적인 손맛을 극대화하라.`,
+                rounded: `
+- 스타일: 다정한 둥근 손글씨 (Warm, affectionate, rounded Korean brush-pen calligraphy).
+- 필치 및 질감: 거친 갈필이나 붓 갈라짐(dry-brush scratching) 없이, 잉크가 촉촉하고 매끄럽게 채워진 도톰하고 몽글몽글한 둥근 획 끝처리(smooth, rounded stroke terminals)와 포근한 곡선미를 살려라.
+- 구도 특징: 글자 간격을 촘촘하고 따뜻하게 모아 덩어리감 있는 다정한 구도로 배치하되, 하트(♡)·별·꽃 같은 부가 일러스트나 장식은 절대 그리지 말고 순수 손글씨 타이포그래피만 표현하라.`,
+                dippen: `
+- 스타일: 부드러운 딥펜 손글씨 (Delicate modern Korean dip-pen / fountain-pen calligraphy).
+- 필치 및 질감: 만년필이나 딥펜의 펜촉을 누를 때 굵어지고 뗄 때 가늘어지는 섬세한 필압 변화와 유려하게 흘러가는 서정적 곡선미가 돋보이는 아날로그 펜글씨이다.`,
+                calligraphy: `
+- 스타일: 힘 있는 전통 먹물 서예 (Bold, traditional Korean ink-brush calligraphy artwork).
+- 필치 및 질감: 숙련된 서예가가 전통 붓에 먹을 듬뿍 묻혀 묵직하고 깊이 있게 써 내려간 필치. 대담한 획의 강약, 깊은 먹의 농담, 예술적인 여백의 미를 살려라.`
+            };
+
+            const bgInstruction = bgKey === 'white'
+                ? '배경에는 종이 질감, 그림자, 노이즈, 얼룩, 테두리가 전혀 없는 완벽하고 깨끗한 순수 단색 흰색(#FFFFFF) 배경이다.'
+                : '배경은 은은하고 따뜻한 미색 전통 한지(#F7F4EB, Hanji paper) 질감으로, 다른 그림이나 낙관 없이 고요한 여백만 존재한다.';
+
+            const inkInstructions = {
+                black: '글자는 오직 깊고 진한 순수 검은색(#000000) 잉크로만 선명하게 렌더링되어 배경과 극명한 대비를 이룬다.',
+                charcoal: '글자는 부드러우면서도 깊이 있는 짙은 차콜 그레이(#1E1E1E) 먹물 잉크로 선명하게 렌더링되어 있다.',
+                navy: '글자는 고요하고 지적인 먹빛 남색(#1B263B) 잉크로 선명하게 렌더링되어 있다.',
+                crimson: '글자는 전통 인장과 고서화의 기품이 느껴지는 고풍스러운 적갈색(#5C2018) 잉크로 선명하게 렌더링되어 있다.'
+            };
+
+            return `
+[목표]
+한국어 캘리그라피 아티스트가 직접 손으로 쓴 고해상도 순수 타이포그래피 아트워크를 생성하라.
+
+[정확한 한글 텍스트 및 줄바꿈]
+캔버스 중앙에 충분한 여백을 두고 총 ${lineCount}줄로 균형 있게 배치하라. 오탈자나 획 누락 없이 아래 한글 문구를 정확하게 표기해야 한다:
+${formattedLines}
+${emphasisInstruction}
+
+[컴퓨터 폰트 느낌 완전 배제 규칙]
+- 디지털 폰트(컴퓨터 글자체)처럼 자로 잰 듯 똑같은 크기와 수평 정렬을 완전히 탈피하라.
+- 사람이 직접 손으로 쓸 때 나타나는 자연스러운 불규칙함, 기울기의 미세한 변화, 자모음의 유기적인 호흡과 리듬감을 살려라.
+
+[서체 스타일]
+${styleDescriptions[styleKey] || styleDescriptions.brushpen}
+
+[배경, 색상 및 금지 요소]
+- ${bgInstruction}
+- ${inkInstructions[inkKey] || inkInstructions.black}
+- 글자 외의 어떠한 일러스트, 하트(♡), 꽃, 선, 테두리, 도장(낙관), 워터마크도 절대 추가하지 말고 오직 순수 캘리그라피 글씨만 렌더링하라.
+            `.trim();
+        }
+
+        // --- 지수 백오프를 적용한 Fetch 헬퍼 ---
+        async function fetchWithBackoff(url, options, maxRetries = 4) {
+            let delay = 1000;
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errText}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    if (attempt === maxRetries) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        // --- 유채색 잉크 색상을 보존하는 투명 배경(누끼) PNG 변환 ---
+        function generateTransparentPng(imageDataUrl) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    processCanvas.width = img.width;
+                    processCanvas.height = img.height;
+                    const ctx = processCanvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+
+                    const imgData = ctx.getImageData(0, 0, processCanvas.width, processCanvas.height);
+                    const data = imgData.data;
+
+                    // 순수 흰색(255,255,255)으로부터의 RGB 유클리드 색차 기반 알파 추출
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+
+                        const distFromWhite = Math.sqrt(
+                            Math.pow(255 - r, 2) +
+                            Math.pow(255 - g, 2) +
+                            Math.pow(255 - b, 2)
+                        );
+
+                        if (distFromWhite < 24) {
+                            data[i + 3] = 0;
+                        } else if (distFromWhite < 115) {
+                            const alpha = Math.round(((distFromWhite - 24) / (115 - 24)) * 255);
+                            data[i + 3] = Math.min(255, Math.max(0, alpha));
+                        } else {
+                            data[i + 3] = 255;
+                        }
+                    }
+
+                    ctx.putImageData(imgData, 0, 0);
+                    resolve(processCanvas.toDataURL('image/png'));
+                };
+                img.onerror = reject;
+                img.src = imageDataUrl;
+            });
+        }
+
+        // --- 작품 보관함(히스토리 갤러리) 관리 ---
+        const styleNameMap = {
+            brushpen: '거친 붓펜 & 갈필',
+            rounded: '다정한 둥근 손글씨',
+            dippen: '부드러운 딥펜',
+            calligraphy: '전통 먹물 서예'
+        };
+
+        function addToHistory(item) {
+            state.history.unshift(item);
+            if (state.history.length > 9) {
+                state.history.pop();
+            }
+            renderHistory();
+        }
+
+        function renderHistory() {
+            if (state.history.length === 0) {
+                historySection.classList.add('hidden');
+                return;
+            }
+            historySection.classList.remove('hidden');
+            historyCount.textContent = state.history.length;
+            historyGrid.innerHTML = '';
+
+            state.history.forEach((item, index) => {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'group text-left rounded-xl border border-hanji-200 bg-white overflow-hidden hover:border-hanji-900 transition shadow-2xs focus:outline-none cursor-pointer';
+                card.innerHTML = `
+                    <div class="aspect-video w-full bg-white overflow-hidden border-b border-hanji-100">
+                        <img src="${item.originalDataUrl}" alt="보관함 작품 ${index + 1}" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+                    </div>
+                    <div class="p-2.5">
+                        <p class="text-[11px] font-bold text-hanji-900 truncate">${item.text.replace(/\n/g, ' ')}</p>
+                        <p class="text-[10px] text-hanji-800/60 mt-0.5">${styleNameMap[item.style] || item.style}</p>
+                    </div>
+                `;
+                card.addEventListener('click', () => {
+                    state.originalDataUrl = item.originalDataUrl;
+                    state.transparentDataUrl = item.transparentDataUrl;
+                    state.isCheckerPreview = false;
+                    canvasFrame.classList.remove('checkerboard-bg');
+                    toggleCheckerLabel.textContent = '투명 배경(누끼) 미리보기';
+
+                    if (item.transparentDataUrl) {
+                        downloadTransparentBtn.classList.remove('hidden');
+                        previewModeToggle.classList.remove('hidden');
+                        previewModeToggle.classList.add('flex');
+                    } else {
+                        downloadTransparentBtn.classList.add('hidden');
+                        previewModeToggle.classList.add('hidden');
+                        previewModeToggle.classList.remove('flex');
+                    }
+
+                    resultImage.src = item.originalDataUrl;
+                    resultImage.classList.remove('hidden');
+                    emptyState.classList.add('hidden');
+                    actionBar.classList.remove('hidden');
+                    statusBadge.textContent = '보관함 불러옴';
+                    statusBadge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-hanji-200 text-hanji-900 font-medium';
+                    showToast('보관함에서 작품을 불러왔습니다.', 'info');
+                });
+                historyGrid.appendChild(card);
+            });
+        }
+
+        // --- Gemini 이미지 생성 실행 ---
+        async function handleGenerate() {
+            const rawText = textInput.value.trim();
+            if (!rawText) {
+                showToast('변환할 캘리그라피 문구를 먼저 입력해 주세요.', 'error');
+                textInput.focus();
+                return;
+            }
+
+            if (state.isGenerating) return;
+            state.isGenerating = true;
+
+            generateBtn.disabled = true;
+            emptyState.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            statusBadge.textContent = '작품 생성 중...';
+            statusBadge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-medium';
+
+            try {
+                const emphasisList = getEmphasisWords();
+                const prompt = buildCalligraphyPrompt(rawText, state.style, state.bg, state.ink, emphasisList);
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    contents: [{
+                        role: 'user',
+                        parts: [{ text: prompt }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ['IMAGE'],
+                        imageConfig: {
+                            aspectRatio: "16:9"
+                        }
+                    }
+                };
+
+                const result = await fetchWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const part = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+                if (!part || !part.inlineData?.data) {
+                    throw new Error('이미지 데이터를 수신하지 못했습니다.');
+                }
+
+                const mimeType = part.inlineData.mimeType || 'image/png';
+                const imageUrl = `data:${mimeType};base64,${part.inlineData.data}`;
+
+                state.originalDataUrl = imageUrl;
+                state.isCheckerPreview = false;
+                canvasFrame.classList.remove('checkerboard-bg');
+                toggleCheckerLabel.textContent = '투명 배경(누끼) 미리보기';
+
+                if (state.bg === 'white') {
+                    state.transparentDataUrl = await generateTransparentPng(imageUrl);
+                    downloadTransparentBtn.classList.remove('hidden');
+                    previewModeToggle.classList.remove('hidden');
+                    previewModeToggle.classList.add('flex');
+                } else {
+                    state.transparentDataUrl = null;
+                    downloadTransparentBtn.classList.add('hidden');
+                    previewModeToggle.classList.add('hidden');
+                    previewModeToggle.classList.remove('flex');
+                }
+
+                resultImage.src = state.originalDataUrl;
+                resultImage.classList.remove('hidden');
+                actionBar.classList.remove('hidden');
+
+                addToHistory({
+                    text: rawText,
+                    style: state.style,
+                    bg: state.bg,
+                    ink: state.ink,
+                    originalDataUrl: state.originalDataUrl,
+                    transparentDataUrl: state.transparentDataUrl
+                });
+
+                statusBadge.textContent = '완성됨';
+                statusBadge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-medium';
+                showToast('손글씨 캘리그라피 작품이 완성되었습니다!', 'success');
+
+            } catch (error) {
+                console.error('Calligraphy generation error:', error);
+                statusBadge.textContent = '오류 발생';
+                statusBadge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-red-100 text-red-900 font-medium';
+                if (!state.originalDataUrl) {
+                    emptyState.classList.remove('hidden');
+                }
+                showToast('이미지 생성 중 일시적인 오류가 발생했습니다. 다시 시도해 주세요.', 'error');
+            } finally {
+                state.isGenerating = false;
+                generateBtn.disabled = false;
+                loadingState.classList.add('hidden');
+            }
+        }
+
+        // --- 투명 배경 미리보기 토글 ---
+        toggleCheckerBtn.addEventListener('click', () => {
+            if (!state.transparentDataUrl) return;
+            state.isCheckerPreview = !state.isCheckerPreview;
+            if (state.isCheckerPreview) {
+                canvasFrame.classList.add('checkerboard-bg');
+                resultImage.src = state.transparentDataUrl;
+                toggleCheckerLabel.textContent = '원본 흰색 배경 보기';
+            } else {
+                canvasFrame.classList.remove('checkerboard-bg');
+                resultImage.src = state.originalDataUrl;
+                toggleCheckerLabel.textContent = '투명 배경(누끼) 미리보기';
+            }
+        });
+
+        // --- PNG 다운로드 ---
+        function triggerDownload(dataUrl, filename) {
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        downloadNormalBtn.addEventListener('click', () => {
+            if (!state.originalDataUrl) return;
+            const timestamp = new Date().toISOString().slice(0, 10);
+            triggerDownload(state.originalDataUrl, `calligraphy_${timestamp}.png`);
+            showToast('원본 PNG 이미지가 저장되었습니다.', 'success');
+        });
+
+        downloadTransparentBtn.addEventListener('click', () => {
+            if (!state.transparentDataUrl) return;
+            const timestamp = new Date().toISOString().slice(0, 10);
+            triggerDownload(state.transparentDataUrl, `calligraphy_transparent_${timestamp}.png`);
+            showToast('투명 배경(누끼) PNG 파일이 저장되었습니다.', 'success');
+        });
+
+        generateBtn.addEventListener('click', handleGenerate);
+    </script>
+</body>
+</html>
